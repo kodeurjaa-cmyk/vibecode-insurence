@@ -100,7 +100,7 @@ const NewPolicyForm = () => {
             console.error('Full error:', error);
             console.error('Error response:', error.response);
             console.error('Error message:', error.message);
-            alert(`Failed to generate policy: ${error.response?.data?.error || error.message || 'Unknown error'}`);
+            alert(`Failed to generate policy: ${error.response?.data?.error || error.message || 'Unknown error'} (Target: ${import.meta.env.VITE_API_BASE_URL})`);
         } finally {
             setLoading(false);
         }

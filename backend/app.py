@@ -5,7 +5,7 @@ from config import Config
 def create_app():
     app = Flask(__name__)
     app.config.from_object(Config)
-    CORS(app)
+    CORS(app, resources={r"/*": {"origins": "*"}})
 
     # Register blueprints
     from routes.policy_routes import policy_bp
