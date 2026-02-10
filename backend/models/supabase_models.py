@@ -1,5 +1,6 @@
 from typing import Dict, List
 import os
+import uuid
 from supabase import create_client, Client
 from config import Config
 
@@ -16,19 +17,27 @@ class SupabaseModels:
     def create_user(self, user_data: Dict) -> Dict:
         if not self.supabase: return {**user_data, "id": "mock-user-id"}
         try:
-            response = self.supabase.table('users').insert(user_data).execute()
+            # Generate UUID in Python to be safe
+            user_id = str(uuid.uuid4())
+            data = {**user_data, "id": user_id}
+            
+            response = self.supabase.table('users').insert(data).execute()
             if response.data:
                 return response.data[0]
-            return {**user_data, "id": "mock-user-id"}
+            return data # Return the data we sent if response is empty (but successful)
         except Exception as e:
-            print(f"DB Error (create_user): {e}. Falling back to mock data.")
-            return {**user_data, "id": "mock-user-id"}
+            print(f"DB Error (create_user): {e}")
+            # RETHROW exception so we know it failed
+            raise e
 
     def create_policy(self, user_id: str, insurance_details: Dict) -> Dict:
+        policy_id = str(uuid.uuid4())
         policy_data = {
+            "id": policy_id,
             "user_id": user_id,
             "type": insurance_details.get('type'),
             "coverage_amount": insurance_details.get('coverage_amount'),
+            "duration": insurance_details.get('duration'), # Added duration
             "status": "active"
         }
         if not self.supabase: return {**policy_data, "id": "mock-policy-id"}
@@ -37,10 +46,10 @@ class SupabaseModels:
             response = self.supabase.table('policies').insert(policy_data).execute()
             if response.data:
                 return response.data[0]
-            return {**policy_data, "id": "mock-policy-id"}
+            return policy_data
         except Exception as e:
-            print(f"DB Error (create_policy): {e}. Falling back to mock data.")
-            return {**policy_data, "id": "mock-policy-id"}
+            print(f"DB Error (create_policy): {e}")
+            raise e
 
     def save_risk_assessment(self, policy_id: str, risk_data: Dict) -> Dict:
         if not self.supabase: return risk_data
