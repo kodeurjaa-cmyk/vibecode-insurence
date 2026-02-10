@@ -30,13 +30,28 @@ def create_app():
     def debug_db():
         try:
             from config import Config
-            return {
-                'supabase_url_set': bool(Config.SUPABASE_URL),
-                'supabase_key_set': bool(Config.SUPABASE_KEY),
-                'env_vars': {k: 'SET' for k in os.environ if k.startswith('SUPABASE')}
-            }
+            from models.supabase_models import SupabaseModels
+            import os
+            
+            db = SupabaseModels()
+            status = {}
+            
+            # 1. Check Env Vars
+            status['env_uuid_set'] = bool(Config.SUPABASE_URL)
+            status['env_key_set'] = bool(Config.SUPABASE_KEY)
+            
+            # 2. Test Connection & Insert
+            try:
+                test_data = {"age": 99, "gender": "DEBUG_PROBE", "location": "DEBUG", "income": 0, "lifestyle_factors": "DEBUG"}
+                res = db.supabase.table('users').insert(test_data).execute()
+                status['insert_test'] = "Success: Data inserted"
+                status['inserted_data'] = res.data
+            except Exception as e:
+                status['insert_test'] = f"FAILED: {str(e)}"
+                
+            return status
         except Exception as e:
-            return {'error': str(e)}, 500
+            return {'critical_error': str(e)}, 500
 
     return app
 
