@@ -26,6 +26,18 @@ def create_app():
     def health_check():
         return {'status': 'healthy'}, 200
 
+    @app.route('/api/debug/db')
+    def debug_db():
+        try:
+            from config import Config
+            return {
+                'supabase_url_set': bool(Config.SUPABASE_URL),
+                'supabase_key_set': bool(Config.SUPABASE_KEY),
+                'env_vars': {k: 'SET' for k in os.environ if k.startswith('SUPABASE')}
+            }
+        except Exception as e:
+            return {'error': str(e)}, 500
+
     return app
 
 app = create_app()
